@@ -12,7 +12,7 @@ UML 本身是一套符号的规定，就像数学符号和化学符号一样，�
 
 （2）示例
 
-![uml_show](https://raw.githubusercontent.com/yuying1230/my_design_mode/raw/master/notes/02_uml/imgs/01_uml_show.png)
+![uml_show](./imgs/01_uml_show.png)
 
 
 
