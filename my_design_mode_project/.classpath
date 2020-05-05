@@ -6,12 +6,12 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="lib/cglib-3.3.0.jar"/>
 	<classpathentry kind="lib" path="lib/asm-6.0.jar"/>
 	<classpathentry kind="lib" path="lib/asm-analysis-6.0.jar"/>
 	<classpathentry kind="lib" path="lib/asm-commons-6.0.jar"/>
 	<classpathentry kind="lib" path="lib/asm-tree-6.0.jar"/>
 	<classpathentry kind="lib" path="lib/asm-util-6.0.jar"/>
 	<classpathentry kind="lib" path="lib/asm-xml-6.0.jar"/>
+	<classpathentry kind="lib" path="lib/cglib-3.2.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
