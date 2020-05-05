@@ -569,15 +569,588 @@ class Person_I2 {
 
 
 
-#### 4.1 简述
+#### 4.1 OO中的继承
+
+（1）继承包含如下一层含义
+
+父类中凡是已经实现好的方法，实际上是在设定规范和契约，虽然他不强制要求所有的子类必须遵循这些契约，但是如果子类对这些已经实现的方法任意修改，就会对整个继承体系造成破坏。
+
+（2）继承给程序带来便利，也带来弊端
+
+使用继承会给程序带来侵入性，程序的可移植性降低，增加对象间的耦合性，如果一个类被其他的类所继承，当这个类需要修改时，必须考虑到所有的子类，并且父类修改后，所有涉及到子类的功能都有可能产生故障。
+
+
+
+#### 4.2 简介
+
+（1）如果对每个类型为T1的对象o1，都有类型为T2的对象o2，使得以T1定义的所有程序P中，在所有的对象o1都替换成o2时，程序P的行为没有发生变化，那么，类型T2是类型T1的子类型。
+
+换句话说，所有引用基类的地方必须能透明地使用其子类的对象。
+
+（2）使用继承时，遵循里氏替换原则，即**在子类中尽量不要重写父类的方法**。
+
+（3）里氏替换原则告诉我们，继承实际上让两个类耦合性增强了，在适当的情况下，可以通过聚合、组合、依赖来解决问题。
 
 
 
 
 
-#### 4.2 示例
+#### 4.3 示例
 
-##### 4.2.1 未遵循里式替换原则
+##### 4.3.1 未遵循里式替换原则
+
+L1_B无意中重写了父类的方法，造成原有功能出现错误。
+
+实际编程中，常常会通过重写父类的方法完成新的功能，虽然简单，但是整个继承体系的复用性会较差，特别是运行多态比较频繁的时候。
+
+```java
+L1_Liskov.java
+
+package com.lovestory.dm.principle.liskov_substitution;
+
+public class L1_Liskov {
+	public static void main(String[] args) {
+		L1_A a = new L1_A();
+		System.out.println("11-3=" + a.func1(11, 3));
+		System.out.println("1-8=" + a.func1(1, 8));
+
+		System.out.println("-----------------------");
+		L1_B b = new L1_B();
+		System.out.println("11-3=" + b.func1(11, 3));// 这里本意是求出 11-3
+		System.out.println("1-8=" + b.func1(1, 8));// 1-8 System.out.println("11+3+9=" + b.func2(11, 3));
+
+	}
+}
+
+class L1_A {
+	public int func1(int num1, int num2) {
+		return num1 - num2;
+	}
+}
+
+class L1_B extends L1_A {
+	public int func1(int num1, int num2) {
+		return num1 + num2;
+	}
+
+	public int func2(int num1, int num2) {
+		return func1(num1, num2) + 1;
+	}
+}
+```
 
 
 
+##### 4.3.2 改进方案
+
+创建一个更加基础的基类。
+
+使用组合、聚合的方式使用另一个类的方法。
+
+```java
+L2_Liskov.java
+
+package com.lovestory.dm.principle.liskov_substitution;
+
+public class L2_Liskov {
+	public static void main(String[] args) {
+		L2_A a = new L2_A();
+		System.out.println("11-3=" + a.func1(11, 3));
+		System.out.println("1-8=" + a.func1(1, 8));
+
+		System.out.println("-----------------------");
+		L2_B b = new L2_B();
+		// L2_B类不再继承L2_A，因此调用者不会再调用func1进行求减法
+		// 而是调用明确的func3功能
+		System.out.println("11+3=" + b.func1(11, 3));
+		System.out.println("1+8=" + b.func1(1, 8));
+		System.out.println("4-1=" + b.func3(4, 1));
+
+	}
+}
+
+// 创建一个更加基础的基类
+class Base {
+
+}
+
+class L2_A extends Base {
+	public int func1(int num1, int num2) {
+		return num1 - num2;
+	}
+}
+
+class L2_B extends Base {
+	// 如果L2_B需要使用L2_A类的方法，可以使用组合关系
+	private L2_A a = new L2_A();
+
+	public int func1(int num1, int num2) {
+		return num1 + num2;
+	}
+
+	public int func2(int num1, int num2) {
+		return func1(num1, num2) + 1;
+	}
+
+	public int func3(int num1, int num2) {
+		return this.a.func1(num1, num2);
+	}
+}
+```
+
+
+
+### 5 开闭原则
+
+**注：本节实例参看工程中com.lovestory.dm.principle.ocp包**
+
+
+
+#### 5.1 简介
+
+（1）开闭原则
+
+一个软件实体，如类、模块和函数应该对扩展开放（对提供功能的一方来说），对修改关闭（对使用方而言）。
+
+（2）开闭原则用抽象构建框架，用实现扩展细节。
+
+（3）开闭原则是编程中最基础、最终要的设计原则。
+
+（4）当软件需求变化时，尽量通过扩展软件实体的行为来实现变化，而不是通过修改已有的代码来实现变化。
+
+（5）编程中遵循其他的原则，以及使用设计模式的目的就是遵循开闭原则。
+
+
+
+#### 5.2 示例
+
+##### 5.2.1 未遵循OCP
+
+优点：好理解，易于操作。
+
+缺点：当给类增加新的功能时，需要修改使用方代码。比如增加三角形的时候，使用方需要增加对m_type的判断。
+
+```java
+O1_Ocp.java
+    
+package com.lovestory.dm.principle.ocp;
+
+public class O1_Ocp {
+
+	public static void main(String[] args) {
+		O1_GraphicEditor ge = new O1_GraphicEditor();
+		ge.drawCircle(new O1_Circle());
+		ge.drawRectangle(new O1_Rectangle());
+
+	}
+
+}
+
+//这是一个用于绘图的类 [使用方] 
+class O1_GraphicEditor {
+	// 接收 Shape 对象，然后根据 type，来绘制不同的图形
+	public void drawShape(O1_Shape s) {
+		if (s.m_type == 1)
+			drawRectangle(s);
+		else if (s.m_type == 2)
+			drawCircle(s);
+		else if (s.m_type == 3)
+			drawTriangle(s);
+	}
+
+	// 绘制矩形
+	public void drawRectangle(O1_Shape r) {
+		System.out.println(" 绘制矩形 ");
+	}
+
+	// 绘制圆形
+	public void drawCircle(O1_Shape r) {
+		System.out.println(" 绘制圆形 ");
+	}
+
+	// 绘制三角形
+	public void drawTriangle(O1_Shape r) {
+		System.out.println(" 绘制三角形 ");
+	}
+}
+
+//Shape 类，基类
+class O1_Shape {
+	int m_type;
+}
+
+class O1_Rectangle extends O1_Shape {
+	O1_Rectangle() {
+		super.m_type = 1;
+	}
+}
+
+class O1_Circle extends O1_Shape {
+	O1_Circle() {
+		super.m_type = 2;
+	}
+}
+
+```
+
+
+
+##### 5.2.2 改进方案
+
+将Shape设计成抽象类，并提供一个draw方法，让子类去实现。
+
+当有新增图形时，只需要继承Shape，并实现draw方法即可，使用方无需修改代码。
+
+```java
+O2_Ocp.java
+
+package com.lovestory.dm.principle.ocp;
+
+public class O2_Ocp {
+
+	public static void main(String[] args) {
+		O2_GraphicEditor ge = new O2_GraphicEditor();
+		ge.drawShape(new O2_Circle());
+		ge.drawShape(new O2_Rectangle());
+		ge.drawShape(new O2_Triangle());
+	}
+
+}
+
+//这是一个用于绘图的类 [使用方] 
+class O2_GraphicEditor {
+	// 接收 Shape 对象，然后根据 type，来绘制不同的图形
+	public void drawShape(O2_Shape s) {
+		s.draw();
+	}
+}
+
+// Shape定义成抽象类
+abstract class O2_Shape {
+	int m_type;
+
+	public abstract void draw();
+}
+
+class O2_Rectangle extends O2_Shape {
+	O2_Rectangle() {
+		super.m_type = 1;
+	}
+
+	@Override
+	public void draw() {
+		System.out.println(" 绘制矩形 ");
+	}
+}
+
+class O2_Circle extends O2_Shape {
+	O2_Circle() {
+		super.m_type = 2;
+	}
+
+	@Override
+	public void draw() {
+		System.out.println(" 绘制圆形 ");
+	}
+}
+
+class O2_Triangle extends O2_Shape {
+	O2_Triangle() {
+		super.m_type = 3;
+	}
+
+	@Override
+	public void draw() {
+		System.out.println(" 绘制三角形 ");
+	}
+}
+
+```
+
+
+
+### 6 迪米特法则
+
+**注：本节实例参看工程中com.lovestory.dm.principle.demeter包**
+
+
+
+#### 6.1 简介
+
+（1）迪米特法则
+
+迪米特法则，又叫最少知道原则，即一个类对自己依赖的类知道的越少越好。
+
+也就是说，不管被依赖的类多复杂，都尽量将逻辑封装在类的内部。对外除了提供的public方法，不对外泄露任何信息。
+
+（2）只与直接的朋友通信
+
+直接的朋友：每个对象都会与其他对象有耦合关系，只要两个对象之间有耦合关系，我们就说这两个对象之间是朋友关系。
+
+耦合的方式很多，如依赖，关联，组合，聚合等。其中，我们称出现在成员变量，方法参数，方法返回值中的类为直接的朋友，而出现在局部变量中的类不是直接的朋友。
+
+也就是说，陌生的类最好不要以局部变量的形式出现在类的内部。
+
+（3）一个对象应该对其他对象保持最少的了解。
+
+
+
+#### 6.2 迪米特法则注意事项和细节
+
+（1）迪米特法则的核心是降低类之间的耦合。
+
+（2）注意：由于每个类都减少了不必要的依赖，因此迪米特法则只是要求降低类间(对象间)耦合关系， 并不是要求完全没有依赖关系
+
+
+
+#### 6.3 示例
+
+##### 6.3.1 未遵循迪米特法则
+
+D1_SchoolManager 类的直接朋友类有 : D1_Employee、D1_CollegeManager。
+D1_CollegeEmployee 是以局部变量方式出现在 D1_SchoolManager 类中，不是 D1_SchoolManager  的直接朋友，而是一个陌生类，违背了迪米特法则。
+
+```java
+D1_Demeter.java
+
+package com.lovestory.dm.principle.demeter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class D1_Demeter {
+
+	public static void main(String[] args) {
+		// 创建了一个 SchoolManager 对象
+		D1_SchoolManager schoolManager = new D1_SchoolManager();
+		// 输出学院的员工 id 和 学校总部的员工信息
+		schoolManager.printAllEmployee(new D1_CollegeManager());
+	}
+
+}
+
+//学校总部员工类
+class D1_Employee {
+	private String id;
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getId() {
+		return id;
+	}
+}
+
+//学院的员工类
+class D1_CollegeEmployee {
+	private String id;
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+}
+
+// 管理学院员工的管理类 
+class D1_CollegeManager {
+	// 返回学院的所有员工
+	public List<D1_CollegeEmployee> getAllEmployee() {
+		List<D1_CollegeEmployee> list = new ArrayList<D1_CollegeEmployee>();
+		for (int i = 0; i < 10; i++) { // 这里我们增加了 10 个员工到 list
+			D1_CollegeEmployee emp = new D1_CollegeEmployee();
+			emp.setId("学院员工 id= " + i);
+			list.add(emp);
+		}
+		return list;
+	}
+}
+
+// 学校管理类
+class D1_SchoolManager {
+	// 返回学校总部的员工
+	public List<D1_Employee> getAllEmployee() {
+		List<D1_Employee> list = new ArrayList<D1_Employee>();
+
+		for (int i = 0; i < 5; i++) { // 这里我们增加了 5 个员工到
+			D1_Employee emp = new D1_Employee();
+			emp.setId("学校总部员工 id= " + i);
+			list.add(emp);
+		}
+		return list;
+	}
+
+	// 该方法完成输出学校总部和学院员工信息的方法(id)
+	void printAllEmployee(D1_CollegeManager sub) {
+
+		// 获取到学院员工
+		List<D1_CollegeEmployee> list1 = sub.getAllEmployee();
+		System.out.println("------------学院员工------------");
+		for (D1_CollegeEmployee e : list1) {
+			System.out.println(e.getId());
+		}
+		// 获取到学校总部员工
+		List<D1_Employee> list2 = this.getAllEmployee();
+		System.out.println("------------学校总部员工------------");
+		for (D1_Employee e : list2) {
+			System.out.println(e.getId());
+		}
+	}
+}
+
+```
+
+
+
+##### 6.3.2 改进方案
+
+按照迪米特法则，避免类中出现非直接朋友关系的耦合。
+
+```java
+D2_CollegeManager.java
+    
+package com.lovestory.dm.principle.demeter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class D2_Demeter {
+
+	public static void main(String[] args) {
+		// 创建了一个 SchoolManager 对象
+		D2_SchoolManager schoolManager = new D2_SchoolManager();
+		// 输出学院的员工 id 和 学校总部的员工信息
+		schoolManager.printAllEmployee(new D2_CollegeManager());
+	}
+
+}
+
+//学校总部员工类
+class D2_Employee {
+	private String id;
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getId() {
+		return id;
+	}
+}
+
+//学院的员工类
+class D2_CollegeEmployee {
+	private String id;
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+}
+
+// 管理学院员工的管理类 
+class D2_CollegeManager {
+	// 返回学院的所有员工
+	public List<D2_CollegeEmployee> getAllEmployee() {
+		List<D2_CollegeEmployee> list = new ArrayList<D2_CollegeEmployee>();
+		for (int i = 0; i < 10; i++) { // 这里我们增加了 10 个员工到 list
+			D2_CollegeEmployee emp = new D2_CollegeEmployee();
+			emp.setId("学院员工 id= " + i);
+			list.add(emp);
+		}
+		return list;
+	}
+
+	public void printEmployee() {
+		// 获取到学院员工
+		List<D2_CollegeEmployee> list1 = this.getAllEmployee();
+		System.out.println("------------学院员工------------");
+		for (D2_CollegeEmployee e : list1) {
+			System.out.println(e.getId());
+		}
+	}
+}
+
+// 学校管理类
+class D2_SchoolManager {
+	// 返回学校总部的员工
+	public List<D2_Employee> getAllEmployee() {
+		List<D2_Employee> list = new ArrayList<D2_Employee>();
+
+		for (int i = 0; i < 5; i++) { // 这里我们增加了 5 个员工到
+			D2_Employee emp = new D2_Employee();
+			emp.setId("学校总部员工 id= " + i);
+			list.add(emp);
+		}
+		return list;
+	}
+
+	// 该方法完成输出学校总部和学院员工信息的方法(id)
+	void printAllEmployee(D2_CollegeManager sub) {
+
+		// 分析问题
+		// 将输出学院员工方法，封装到 D2_CollegeManager 类中
+		sub.printEmployee();
+		
+		// 获取到学校总部员工
+		List<D2_Employee> list2 = this.getAllEmployee();
+		System.out.println("------------学校总部员工------------");
+		for (D2_Employee e : list2) {
+			System.out.println(e.getId());
+		}
+	}
+}
+
+```
+
+
+
+### 7 合成复用原则
+
+**注：本节实例参看工程中com.lovestory.dm.principle.composite包**
+
+
+
+#### 7.1 简介
+
+合成复用原则：尽量使用合成/聚合的方式，而不是使用继承。
+
+
+
+#### 7.2 设计原则核心思想
+
+（1）找出应用中可能需要变化之处，把它们独立出来，不要和那些不需要变化的代码混在一起。
+
+（2）针对接口编程，而不是针对实现编程。
+
+（3）为了交互对象之间的松耦合设计而努力
+
+
+
+#### 7.3 UML示例
+
+##### 7.3.1 继承
+
+![composite_extend](./imgs/01_composite_extend.png)
+
+##### 7.3.2 依赖
+
+![composite_relyon](./imgs/02_composite_relyon.png)
+
+
+
+##### 7.3.3 聚合
+
+![composite_aggregation](./imgs/03_composite_aggregation.png)
+
+##### 7.3.4 组合
+
+![composite_composite](./imgs/04_composite_composite.png)
